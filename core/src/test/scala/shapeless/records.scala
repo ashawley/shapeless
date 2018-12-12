@@ -139,9 +139,9 @@ class RecordTests {
 
   @Test
   def testFromMap: Unit = {
-    type T1 = Record.`'stringVal -> String, 'intVal -> Int, 'boolVal -> Boolean`.T
+    type T1 = Record.`sym"stringVal" -> String, sym"intVal" -> Int, sym"boolVal" -> Boolean`.T
 
-    val in = Map('intVal -> 4, 'stringVal -> "Blarr", 'boolVal -> true)
+    val in = Map(sym"intVal" -> 4, sym"stringVal" -> "Blarr", sym"boolVal" -> true)
 
 
     val recOption = in.toRecord[T1]
@@ -152,11 +152,11 @@ class RecordTests {
 
     typed[T1](rec)
 
-    assert(rec('stringVal) == "Blarr", "stringVal mismatch")
-    assert(rec('intVal) == 4, "int val mismatch")
-    assert(rec('boolVal), "Boolean val match")
+    assert(rec(sym"stringVal") == "Blarr", "stringVal mismatch")
+    assert(rec(sym"intVal") == 4, "int val mismatch")
+    assert(rec(sym"boolVal"), "Boolean val match")
 
-    val in2 = Map('intVal -> 4, 'stringVal -> "Blarr")
+    val in2 = Map(sym"intVal" -> 4, sym"stringVal" -> "Blarr")
 
     val recEither2 = in2.toRecord[T1]
 
@@ -300,12 +300,12 @@ class RecordTests {
 
   @Test
   def testMerge: Unit = {
-    val r1 = 'a ->> 23 :: 'b ->> "foo" :: 'c ->> true :: HNil
-    val r2 = 'c ->> false :: 'a ->> 13 :: HNil
-    val rExp = 'a ->> 13 :: 'b ->> "foo" :: 'c ->> false :: HNil
+    val r1 = sym"a" ->> 23 :: sym"b" ->> "foo" :: sym"c" ->> true :: HNil
+    val r2 = sym"c" ->> false :: sym"a" ->> 13 :: HNil
+    val rExp = sym"a" ->> 13 :: sym"b" ->> "foo" :: sym"c" ->> false :: HNil
 
     val rm = r1.merge(r2)
-    typed[Record.`'a -> Int, 'b -> String, 'c -> Boolean`.T](rm)
+    typed[Record.`sym"a" -> Int, sym"b" -> String, sym"c" -> Boolean`.T](rm)
     assertEquals(rExp, rm)
   }
 
@@ -352,17 +352,17 @@ class RecordTests {
     val inner1 = Record(d = 3, m = 2D, x= "X")
     val outer1 = Record(x = "foo", d = -1, e = inner1)
 
-    type i = Record.`'x -> String, 'd -> Int`.T
-    type i1 = Record.`'x -> Any, 'd -> Any`.T
+    type i = Record.`sym"x" -> String, sym"d" -> Int`.T
+    type i1 = Record.`sym"x" -> Any, sym"d" -> Any`.T
     val extRes = Record(e = Record(x = "X", d = 3), d = -1)
-    assertTypedEquals(extRes)(outer1.extract[Record.`'e -> i, 'd -> Int`.T])
+    assertTypedEquals(extRes)(outer1.extract[Record.`sym"e" -> i, sym"d" -> Int`.T])
     //covariance
-    assertEquals(extRes, outer1.extract[Record.`'e -> i1, 'd -> Any`.T])
+    assertEquals(extRes, outer1.extract[Record.`sym"e" -> i1, sym"d" -> Any`.T])
 
-    type ill1 = Record.`'d -> Int, 'z -> Int`.T
-    type ill2 = Record.`'x -> i`.T
-    type illIner = Record.`'m -> String, 'd -> Int`.T
-    type ill3 = Record.`'e -> illIner, 'd -> Int`.T
+    type ill1 = Record.`sym"d" -> Int, sym"z" -> Int`.T
+    type ill2 = Record.`sym"x" -> i`.T
+    type illIner = Record.`sym"m" -> String, sym"d" -> Int`.T
+    type ill3 = Record.`sym"e" -> illIner, sym"d" -> Int`.T
 
 
     illTyped("outer1.extract[ill1]")
@@ -378,22 +378,22 @@ class RecordTests {
     }
 
     {
-      val r1 = 'c ->> true :: HNil
-      val r2 = 'c ->> false :: HNil
-      val rExp = 'c ->> true :: HNil
+      val r1 = sym"c" ->> true :: HNil
+      val r2 = sym"c" ->> false :: HNil
+      val rExp = sym"c" ->> true :: HNil
 
       val rm = r1.mergeWith(r2)(mergeField)
-      typed[Record.`'c -> Boolean`.T](rm)
+      typed[Record.`sym"c" -> Boolean`.T](rm)
       assertEquals(rExp, rm)
     }
 
     {
-      val r1 = 'a ->> 23 :: 'b ->> "foo" :: 'c ->> true :: HNil
-      val r2 = 'c ->> false :: 'a ->> "13" :: HNil
-      val rExp = 'a ->> 36.0 :: 'b ->> "foo" :: 'c ->> true :: HNil
+      val r1 = sym"a" ->> 23 :: sym"b" ->> "foo" :: sym"c" ->> true :: HNil
+      val r2 = sym"c" ->> false :: sym"a" ->> "13" :: HNil
+      val rExp = sym"a" ->> 36.0 :: sym"b" ->> "foo" :: sym"c" ->> true :: HNil
 
       val rm = r1.mergeWith(r2)(mergeField)
-      typed[Record.`'a -> Double, 'b -> String, 'c -> Boolean`.T](rm)
+      typed[Record.`sym"a" -> Double, sym"b" -> String, sym"c" -> Boolean`.T](rm)
       assertEquals(rExp, rm)
     }
   }
@@ -575,46 +575,46 @@ class RecordTests {
 
   @Test
   def testReplace: Unit = {
-    type R = Record.`'a -> Int, 'b -> String`.T
+    type R = Record.`sym"a" -> Int, sym"b" -> String`.T
     val a = Record(a = 1, b = "2")
-    val r = a.replace('a, 2)
+    val r = a.replace(sym"a", 2)
 
     typed[R](r)
     assertEquals(Record(a = 2, b = "2"), r)
 
-    illTyped(""" a.replace('a, ()) """)
+    illTyped(""" a.replace(sym"a", ()) """)
   }
 
   @Test
   def testLacksKey: Unit = {
     def without[R <: HList, O <: HList](k: Witness)(r: R)(f: R => O)(implicit ev: LacksKey[R, k.T]): O = f(r)
 
-    type R1 = Record.`'a -> Int, 'b -> String, 'c -> Boolean`.T
-    type R2 = Record.`'c -> Boolean, 'a -> Int, 'b -> String`.T
+    type R1 = Record.`sym"a" -> Int, sym"b" -> String, sym"c" -> Boolean`.T
+    type R2 = Record.`sym"c" -> Boolean, sym"a" -> Int, sym"b" -> String`.T
 
     val a = Record(a = 1, b = "2")
 
-    val r1 = without('c)(a)(_ :+ ('c ->> true))
+    val r1 = without(sym"c")(a)(_ :+ (sym"c" ->> true))
     typed[R1](r1)
     assertEquals(Record(a = 1, b = "2", c = true), r1)
 
-    val r2 = without('c)(a)(('c ->> true) +: _)
+    val r2 = without(sym"c")(a)((sym"c" ->> true) +: _)
     typed[R2](r2)
     assertEquals(Record(c = true, a = 1, b = "2"), r2)
 
-    illTyped(""" without('a)(a)(identity) """)
+    illTyped(""" without(sym"a")(a)(identity) """)
   }
 
   @Test
   def testRemoveAll: Unit = {
 
-    type R = Record.`'i -> Int, 's -> String, 'c -> Char, 'j -> Int`.T
-    type L = Record.`'c -> Char, 'j -> Int`.T
+    type R = Record.`sym"i" -> Int, sym"s" -> String, sym"c" -> Char, sym"j" -> Int`.T
+    type L = Record.`sym"c" -> Char, sym"j" -> Int`.T
 
-    type A1 = Record.`'i -> Int, 's -> String`.T
+    type A1 = Record.`sym"i" -> Int, sym"s" -> String`.T
     type A2 = Int :: String :: HNil
 
-    val r = 'i ->> 10 :: 's ->> "foo" :: 'c ->> 'x' :: 'j ->> 42 :: HNil
+    val r = sym"i" ->> 10 :: sym"s" ->> "foo" :: sym"c" ->> 'x' :: sym"j" ->> 42 :: HNil
 
     val removeAll1 = RemoveAll[R, A1]
     val removeAll2 = RemoveAll[R, A2]
@@ -626,16 +626,16 @@ class RecordTests {
     val r2 = removeAll2.reinsert((removed2, remaining2))
 
     typed[A1](removed1)
-    assertEquals('i ->> 10 :: 's ->> "foo" :: HNil, removed1)
+    assertEquals(sym"i" ->> 10 :: sym"s" ->> "foo" :: HNil, removed1)
 
     typed[A2](removed2)
     assertEquals(10 :: "foo" :: HNil, removed2)
 
     typed[L](remaining1)
-    assertEquals('c ->> 'x' :: 'j ->> 42 :: HNil, remaining1)
+    assertEquals(sym"c" ->> 'x' :: sym"j" ->> 42 :: HNil, remaining1)
 
     typed[L](remaining2)
-    assertEquals('c ->> 'x' :: 'j ->> 42 :: HNil, remaining2)
+    assertEquals(sym"c" ->> 'x' :: sym"j" ->> 42 :: HNil, remaining2)
 
     typed[R](r1)
     assertEquals(r, r1)
@@ -803,7 +803,7 @@ class RecordTests {
 
   @Test
   def testSelectDynamic: Unit = {
-    val r = ('foo ->> 23) :: ('bar ->> true) :: HNil
+    val r = (sym"foo" ->> 23) :: (sym"bar" ->> true) :: HNil
     val d = r.record
 
     val v1 = d.foo
@@ -821,23 +821,23 @@ class RecordTests {
   def testRecordTypeSelector: Unit = {
     typed[Record.` `.T](HNil)
 
-    typed[Record.`'i -> Int`.T]('i ->> 23 :: HNil)
+    typed[Record.`sym"i" -> Int`.T](sym"i" ->> 23 :: HNil)
 
-    typed[Record.`'i -> Int, 's -> String`.T]('i ->> 23 :: 's ->> "foo" :: HNil)
+    typed[Record.`sym"i" -> Int, sym"s" -> String`.T](sym"i" ->> 23 :: sym"s" ->> "foo" :: HNil)
 
-    typed[Record.`'i -> Int, 's -> String, 'b -> Boolean`.T]('i ->> 23 :: 's ->> "foo" :: 'b ->> true :: HNil)
+    typed[Record.`sym"i" -> Int, sym"s" -> String, sym"b" -> Boolean`.T](sym"i" ->> 23 :: sym"s" ->> "foo" :: sym"b" ->> true :: HNil)
 
     // Literal types
 
-    typed[Record.`'i -> 2`.T]('i ->> 2.narrow :: HNil)
+    typed[Record.`sym"i" -> 2`.T](sym"i" ->> 2.narrow :: HNil)
 
-    typed[Record.`'i -> 2, 's -> "a", 'b -> true`.T]('i ->> 2.narrow :: 's ->> "a".narrow :: 'b ->> true.narrow :: HNil)
+    typed[Record.`sym"i" -> 2, sym"s" -> "a", sym"b" -> true`.T](sym"i" ->> 2.narrow :: sym"s" ->> "a".narrow :: sym"b" ->> true.narrow :: HNil)
 
-    illTyped(""" typed[Record.`'i -> 2`.T]('i ->> 3.narrow :: HNil) """)
+    illTyped(""" typed[Record.`sym"i" -> 2`.T](sym"i" ->> 3.narrow :: HNil) """)
 
     // Mix of standard and literal types
 
-    typed[Record.`'i -> 2, 's -> String, 'b -> true`.T]('i ->> 2.narrow :: 's ->> "a" :: 'b ->> true.narrow :: HNil)
+    typed[Record.`sym"i" -> 2, sym"s" -> String, sym"b" -> true`.T](sym"i" ->> 2.narrow :: sym"s" ->> "a" :: sym"b" ->> true.narrow :: HNil)
   }
 
   @Test
@@ -849,7 +849,7 @@ class RecordTests {
 
     {
       val r = Record(i = 23, s = "foo", b = true)
-      typed[Record.`'i -> Int, 's -> String, 'b -> Boolean`.T](r)
+      typed[Record.`sym"i" -> Int, sym"s" -> String, sym"b" -> Boolean`.T](r)
     }
 
     {
@@ -861,20 +861,20 @@ class RecordTests {
   def testNamedArgsInject: Unit = {
     val r = Record(i = 23, s = "foo", b = true)
 
-    val v1 = r.get('i)
+    val v1 = r.get(sym"i")
     typed[Int](v1)
     assertEquals(23, v1)
 
-    val v2 = r.get('s)
+    val v2 = r.get(sym"s")
     typed[String](v2)
     assertEquals("foo", v2)
 
-    val v3 = r.get('b)
+    val v3 = r.get(sym"b")
     typed[Boolean](v3)
     assertEquals(true, v3)
 
     illTyped("""
-      r.get('foo)
+      r.get(sym"foo")
     """)
   }
 
@@ -885,22 +885,22 @@ class RecordTests {
   @Test
   def testRecordArgs: Unit = {
     val r = Foo(i = 23, s = "foo", b = true)
-    typed[Record.`'i -> Int, 's -> String, 'b -> Boolean`.T](r)
+    typed[Record.`sym"i" -> Int, sym"s" -> String, sym"b" -> Boolean`.T](r)
 
-    val v1 = r.get('i)
+    val v1 = r.get(sym"i")
     typed[Int](v1)
     assertEquals(23, v1)
 
-    val v2 = r.get('s)
+    val v2 = r.get(sym"s")
     typed[String](v2)
     assertEquals("foo", v2)
 
-    val v3 = r.get('b)
+    val v3 = r.get(sym"b")
     typed[Boolean](v3)
     assertEquals(true, v3)
 
     illTyped("""
-      r.get('foo)
+      r.get(sym"foo")
     """)
   }
 
@@ -912,19 +912,19 @@ class RecordTests {
 
   @Test
   def testFromRecordArgs: Unit = {
-    val r = ('i1 ->> 1) :: ('i2 ->> 3) :: HNil
+    val r = (sym"i1" ->> 1) :: (sym"i2" ->> 3) :: HNil
 
     val v1 = Bar.sumRecord(r)
     typed[Int](v1)
     assertEquals(4, v1)
 
-    val r2 = r.merge(('i2 ->> 2) :: HNil)
+    val r2 = r.merge((sym"i2" ->> 2) :: HNil)
     val v2 = Bar.sumMultipleParamListRecord(r2)
     typed[Int](v2)
     assertEquals(3, v2)
 
     illTyped("""
-      Bar.sumImplicitRecord(('i1 ->> 1) :: ('i2 ->> 3) :: HNil)
+      Bar.sumImplicitRecord((sym"i1" ->> 1) :: (sym"i2" ->> 3) :: HNil)
     """)
 
     implicit val i2 = 7
@@ -933,11 +933,11 @@ class RecordTests {
     assertEquals(8, v3)
 
     illTyped("""
-      Bar.sumRecord(('i1 ->> 1) :: ('i3 ->> 3) :: HNil)
+      Bar.sumRecord((sym"i1" ->> 1) :: (sym"i3" ->> 3) :: HNil)
     """)
 
     illTyped("""
-      Bar.sumMultipleParamListRecord(('i1 ->> 1) :: ('i3 ->> 3) :: HNil)
+      Bar.sumMultipleParamListRecord((sym"i1" ->> 1) :: (sym"i3" ->> 3) :: HNil)
     """)
   }
 
@@ -957,7 +957,7 @@ class RecordTests {
 
     {
       val f = r.fields
-      assertTypedEquals(('i.narrow -> 23) :: ('s.narrow -> "foo") :: ('b.narrow -> true) :: HNil, f)
+      assertTypedEquals((sym"i".narrow -> 23) :: (sym"s".narrow -> "foo") :: (sym"b".narrow -> true) :: HNil, f)
     }
 
     val rs = ("first" ->> Some(2)) :: ("second" ->> Some(true)) :: ("third" ->> Option.empty[String]) :: HNil
@@ -982,12 +982,12 @@ class RecordTests {
       assertTypedEquals(HNil: HNil, uf.values(HNil: HNil))
     }
 
-    type R = Record.`'i -> Int, 's -> String, 'b -> Boolean`.T
+    type R = Record.`sym"i" -> Int, sym"s" -> String, sym"b" -> Boolean`.T
     val r: R = Record(i = 23, s = "foo", b = true)
 
     {
       val uf = UnzipFields[R]
-      assertTypedEquals('i.narrow :: 's.narrow :: 'b.narrow :: HNil, uf.keys)
+      assertTypedEquals(sym"i".narrow :: sym"s".narrow :: sym"b".narrow :: HNil, uf.keys)
       assertTypedEquals(23 :: "foo" :: true :: HNil, uf.values(r))
     }
 
@@ -1022,12 +1022,12 @@ class RecordTests {
 
     {
       val m = r.toMap
-      assertTypedEquals(Map[Symbol, Any]('i -> 23, 's -> "foo", 'b -> true), m)
+      assertTypedEquals(Map[Symbol, Any](sym"i" -> 23, sym"s" -> "foo", sym"b" -> true), m)
     }
 
     {
       val m = r.toMap[Symbol, Any]
-      assertTypedEquals(Map[Symbol, Any]('i -> 23, 's -> "foo", 'b -> true), m)
+      assertTypedEquals(Map[Symbol, Any](sym"i" -> 23, sym"s" -> "foo", sym"b" -> true), m)
     }
 
     val rs = ("first" ->> Some(2)) :: ("second" ->> Some(true)) :: ("third" ->> Option.empty[String]) :: HNil
@@ -1060,7 +1060,7 @@ class RecordTests {
     {
       val r = Record(i = 23, s = "foo", b = true)
       val res = r.mapValues(f)
-      assertTypedEquals[Record.`'i -> Boolean, 's -> String, 'b -> String`.T](Record(i = true, s = "s: foo", b = "Yup"), res)
+      assertTypedEquals[Record.`sym"i" -> Boolean, sym"s" -> String, sym"b" -> String`.T](Record(i = true, s = "s: foo", b = "Yup"), res)
     }
 
     {
@@ -1090,32 +1090,32 @@ class RecordTests {
   def testSwapRecord: Unit = {
     import shapeless.ops.record.SwapRecord
 
-    val rt = Record.`'x -> Int, 'y -> String, 'z -> Boolean`
+    val rt = Record.`sym"x" -> Int, sym"y" -> String, sym"z" -> Boolean`
     type TestRecord = rt.T
 
-    val (x, y, z) = (Witness('x), Witness('y), Witness('z))
+    val (x, y, z) = (Witness(sym"x"), Witness(sym"y"), Witness(sym"z"))
 
     val fields: (FieldType[Int, x.T] :: FieldType[String, y.T] :: FieldType[Boolean, z.T] :: HNil) = SwapRecord[TestRecord].apply
 
-    assertEquals(fields.toList, List('x, 'y, 'z))
+    assertEquals(fields.toList, List(sym"x", sym"y", sym"z"))
   }
 
   @Test
   def alignByKeys: Unit = {
-    type TestRecord = Record.`'a -> String, 'b -> Int, 'c -> Double`.T
+    type TestRecord = Record.`sym"a" -> String, sym"b" -> Int, sym"c" -> Double`.T
 
-    type Keys1 = HList.`'a, 'b, 'c`.T
-    type Keys2 = HList.`'b, 'c, 'a`.T
-    type Keys3 = HList.`'b, 'a, 'c`.T
-    type Keys4 = HList.`'c, 'a, 'b`.T
+    type Keys1 = HList.`sym"a", sym"b", sym"c"`.T
+    type Keys2 = HList.`sym"b", sym"c", sym"a"`.T
+    type Keys3 = HList.`sym"b", sym"a", sym"c"`.T
+    type Keys4 = HList.`sym"c", sym"a", sym"b"`.T
 
     val v = Record(a  = "foo", b  = 42, c = 33.3)
 
     assertTypedEquals[TestRecord](v, AlignByKeys[TestRecord, Keys1].apply(v))
-    assertTypedEquals[Record.`'b -> Int, 'c -> Double, 'a -> String`.T](Record(b = 42, c = 33.3, a = "foo"), AlignByKeys[TestRecord, Keys2].apply(v))
+    assertTypedEquals[Record.`sym"b" -> Int, sym"c" -> Double, sym"a" -> String`.T](Record(b = 42, c = 33.3, a = "foo"), AlignByKeys[TestRecord, Keys2].apply(v))
 
-    assertTypedEquals[Record.`'b -> Int, 'a -> String, 'c -> Double`.T](Record(b = 42, a = "foo", c = 33.3), v.alignByKeys[Keys3])
-    assertTypedEquals[Record.`'c -> Double, 'a -> String, 'b -> Int`.T](Record(c = 33.3, a = "foo", b = 42), v.alignByKeys[Keys4])
+    assertTypedEquals[Record.`sym"b" -> Int, sym"a" -> String, sym"c" -> Double`.T](Record(b = 42, a = "foo", c = 33.3), v.alignByKeys[Keys3])
+    assertTypedEquals[Record.`sym"c" -> Double, sym"a" -> String, sym"b" -> Int`.T](Record(c = 33.3, a = "foo", b = 42), v.alignByKeys[Keys4])
   }
 
   @Test
@@ -1123,12 +1123,12 @@ class RecordTests {
     import tag.@@
 
     val tagged = tag[Int]("42")
-    val head1 = 'k ->> tagged
-    val head2 = field[Witness.`'k`.T](tagged)
+    val head1 = sym"k" ->> tagged
+    val head2 = field[Witness.`sym"k"`.T](tagged)
     val rec1 = head1 :: HNil
     val rec2 = head2 :: HNil
 
-    assertTypedEquals[String @@ Int](rec1('k), rec2('k))
+    assertTypedEquals[String @@ Int](rec1(sym"k"), rec2(sym"k"))
   }
 
   @Test
@@ -1140,7 +1140,7 @@ class RecordTests {
     val lgt = LabelledGeneric[FooT]
     val fooT = FooT(tag[TestTag]("test"))
 
-    assertEquals(tag[TestTag]("test"), lgt.to(fooT).get('bar))
+    assertEquals(tag[TestTag]("test"), lgt.to(fooT).get(sym"bar"))
   }
 
   @Test
@@ -1152,6 +1152,6 @@ class RecordTests {
     val select = Selector[swap.Out, Int]
     val swapped = swap()
 
-    assertTypedEquals[Witness.`'a`.T](swapped.head, select(swapped))
+    assertTypedEquals[Witness.`sym"a"`.T](swapped.head, select(swapped))
  }
 }

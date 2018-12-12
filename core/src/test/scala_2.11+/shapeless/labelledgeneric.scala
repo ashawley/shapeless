@@ -43,12 +43,12 @@ class LabelledGeneric211Tests {
   def testScalazTagged: Unit = {
     import ScalazTaggedAux._
 
-    type R = Record.`'i -> Int @@ CustomTag`.T
+    type R = Record.`sym"i" -> Int @@ CustomTag`.T
     val lgen = LabelledGeneric[Dummy]
     implicitly[lgen.Repr =:= R]
     implicitly[TC[R]]
 
-    type RT = Record.`'b -> Boolean, 'i -> Int @@ CustomTag`.T
+    type RT = Record.`sym"b" -> Boolean, sym"i" -> Int @@ CustomTag`.T
     val lgent = LabelledGeneric[DummyTagged]
     implicitly[lgent.Repr =:= RT]
     implicitly[TC[RT]]
