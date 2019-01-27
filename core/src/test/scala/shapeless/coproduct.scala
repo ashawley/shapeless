@@ -417,28 +417,28 @@ class CoproductTests {
 
   @Test
   def testWithKeys: Unit = {
-    type U = Union.`sym"i" -> Int, sym"s" -> String, sym"b" -> Boolean`.T
+    type U = Union.`Symbol("i") -> Int, Symbol("s") -> String, Symbol("b") -> Boolean`.T
     val cKeys = Keys[U].apply()
 
     val u1 = Coproduct[ISB](23).zipWithKeys(cKeys)
-    val v1 = u1.get(sym"i")
+    val v1 = u1.get(Symbol("i"))
     typed[Option[Int]](v1)
     assertEquals(Some(23), v1)
-    assertEquals(None, u1.get(sym"s"))
+    assertEquals(None, u1.get(Symbol("s")))
 
     val u2 = Coproduct[ISB]("foo").zipWithKeys(cKeys)
-    val v2 = u2.get(sym"s")
+    val v2 = u2.get(Symbol("s"))
     typed[Option[String]](v2)
     assertEquals(Some("foo"), v2)
-    assertEquals(None, u2.get(sym"b"))
+    assertEquals(None, u2.get(Symbol("b")))
 
     val u3 = Coproduct[ISB](true).zipWithKeys(cKeys)
-    val v3 = u3.get(sym"b")
+    val v3 = u3.get(Symbol("b"))
     typed[Option[Boolean]](v3)
     assertEquals(Some(true), v3)
-    assertEquals(None, u3.get(sym"i"))
+    assertEquals(None, u3.get(Symbol("i")))
 
-    illTyped("""v3.get(sym"d")""")
+    illTyped("""v3.get(Symbol("d"))""")
 
     // key/value lengths must match up
     illTyped("u1.zipWithKeys(uKeys.tail)")
@@ -446,32 +446,32 @@ class CoproductTests {
     // Explicit type argument
 
     {
-      val u1 = Coproduct[ISB](23).zipWithKeys[HList.`sym"i", sym"s", sym"b"`.T]
-      val v1 = u1.get(sym"i")
+      val u1 = Coproduct[ISB](23).zipWithKeys[HList.`Symbol("i"), Symbol("s"), Symbol("b")`.T]
+      val v1 = u1.get(Symbol("i"))
       typed[Option[Int]](v1)
       assertEquals(Some(23), v1)
-      assertEquals(None, u1.get(sym"s"))
+      assertEquals(None, u1.get(Symbol("s")))
     }
 
     {
-      val u2 = Coproduct[ISB]("foo").zipWithKeys[HList.`sym"i", sym"s", sym"b"`.T]
-      val v2 = u2.get(sym"s")
+      val u2 = Coproduct[ISB]("foo").zipWithKeys[HList.`Symbol("i"), Symbol("s"), Symbol("b")`.T]
+      val v2 = u2.get(Symbol("s"))
       typed[Option[String]](v2)
       assertEquals(Some("foo"), v2)
-      assertEquals(None, u2.get(sym"b"))
+      assertEquals(None, u2.get(Symbol("b")))
     }
 
     {
-      val u3 = Coproduct[ISB](true).zipWithKeys[HList.`sym"i", sym"s", sym"b"`.T]
-      val v3 = u3.get(sym"b")
+      val u3 = Coproduct[ISB](true).zipWithKeys[HList.`Symbol("i"), Symbol("s"), Symbol("b")`.T]
+      val v3 = u3.get(Symbol("b"))
       typed[Option[Boolean]](v3)
       assertEquals(Some(true), v3)
-      assertEquals(None, u3.get(sym"i"))
+      assertEquals(None, u3.get(Symbol("i")))
 
-      illTyped("""v3.get(sym"d")""")
+      illTyped("""v3.get(Symbol("d"))""")
     }
 
-    illTyped(""" Coproduct[ISB](true).zipWithKeys[HList.`sym"i", sym"s", sym"b", sym"d"`.T] """)
+    illTyped(""" Coproduct[ISB](true).zipWithKeys[HList.`Symbol("i"), Symbol("s"), Symbol("b"), Symbol("d")`.T] """)
 
   }
 
@@ -1866,14 +1866,14 @@ class CoproductTests {
 
     assertTypedEquals(HNil, Reify[CNil].apply)
 
-    val s1 = Coproduct.`sym"a"`
-    assertTypedEquals(sym"a".narrow :: HNil, Reify[s1.T].apply)
+    val s1 = Coproduct.`Symbol("a")`
+    assertTypedEquals(Symbol("a").narrow :: HNil, Reify[s1.T].apply)
 
-    val s2 = Coproduct.`sym"a", 1, "b", true`
-    assertEquals(sym"a".narrow :: 1.narrow :: "b".narrow :: true.narrow :: HNil, Reify[s2.T].apply)
+    val s2 = Coproduct.`Symbol("a"), 1, "b", true`
+    assertEquals(Symbol("a").narrow :: 1.narrow :: "b".narrow :: true.narrow :: HNil, Reify[s2.T].apply)
 
     illTyped(""" Reify[String :+: Int :+: CNil] """)
-    illTyped(""" Reify[String :+: Coproduct.`sym"a", 1, "b", true`.T] """)
+    illTyped(""" Reify[String :+: Coproduct.`Symbol("a"), 1, "b", true`.T] """)
   }
 
   @Test

@@ -144,14 +144,14 @@ class ProductTests {
     // With explicit type arguments, >: or =:= to the inferred ones respectively
 
     {
-      val fooL = foo.toRecord[Record.`sym"i" -> AnyVal, sym"s" -> String`.T]
+      val fooL = foo.toRecord[Record.`Symbol("i") -> AnyVal, Symbol("s") -> String`.T]
       val expectedFooL = Record(i=1: AnyVal, s="b")
       equalInferredTypes(expectedFooL, fooL)
       assertTypedEquals(expectedFooL, fooL)
     }
 
     {
-      val barL = bar.toRecord[Record.`sym"b" -> Boolean, sym"f" -> Foo`.T]
+      val barL = bar.toRecord[Record.`Symbol("b") -> Boolean, Symbol("f") -> Foo`.T]
       val expectedBarL = Record(b=true, f=foo)
       equalInferredTypes(expectedBarL, barL)
       assertTypedEquals(expectedBarL, barL)
@@ -318,14 +318,14 @@ class ProductTests {
     
     {
       val m = foo.toMap
-      val expected = Map(sym"i".narrow -> 1, sym"s".narrow -> "b")
+      val expected = Map(Symbol("i").narrow -> 1, Symbol("s").narrow -> "b")
       equalInferredTypes(expected, m)
       assertTypedEquals(expected, m)
     }
 
     {
       val m = foo.toMap[Symbol, Any]
-      val expected = Map[Symbol, Any](sym"i" -> 1, sym"s" -> "b")
+      val expected = Map[Symbol, Any](Symbol("i") -> 1, Symbol("s") -> "b")
       equalInferredTypes(expected, m)
       assertTypedEquals(expected, m)
     }

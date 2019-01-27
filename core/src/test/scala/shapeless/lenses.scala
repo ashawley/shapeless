@@ -292,12 +292,12 @@ class LensTestsNat extends LensTests {
 }
 
 class LensTestsKey extends LensTests {
-  val nameLens     = lens[Person] >> sym"name"
-  val ageLens      = lens[Person] >> sym"age"
-  val addressLens  = lens[Person] >> sym"address"
-  val streetLens   = lens[Person] >> sym"address" >> sym"street"
-  val cityLens     = lens[Person] >> sym"address" >> sym"city"
-  val postcodeLens = lens[Person] >> sym"address" >> sym"postcode"
+  val nameLens     = lens[Person] >> Symbol("name")
+  val ageLens      = lens[Person] >> Symbol("age")
+  val addressLens  = lens[Person] >> Symbol("address")
+  val streetLens   = lens[Person] >> Symbol("address") >> Symbol("street")
+  val cityLens     = lens[Person] >> Symbol("address") >> Symbol("city")
+  val postcodeLens = lens[Person] >> Symbol("address") >> Symbol("postcode")
 }
 
 class OpticTestsDynamic extends LensTests {

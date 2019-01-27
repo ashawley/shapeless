@@ -106,7 +106,7 @@ class DefaultTests {
   @Test
   def simpleAsRecord: Unit = {
     val default = Default.AsRecord[CC].apply()
-    assertTypedEquals[Record.`sym"s" -> String, sym"flagOpt" -> Option[Boolean]`.T](
+    assertTypedEquals[Record.`Symbol("s") -> String, Symbol("flagOpt") -> Option[Boolean]`.T](
       Record(s = "b", flagOpt = Some(true)),
       default
     )
@@ -115,7 +115,7 @@ class DefaultTests {
   @Test
   def simpleFromPathAsRecord: Unit = {
     val default = Default.AsRecord[definitions.CC].apply()
-    assertTypedEquals[Record.`sym"s" -> String, sym"flagOpt" -> Option[Boolean]`.T](
+    assertTypedEquals[Record.`Symbol("s") -> String, Symbol("flagOpt") -> Option[Boolean]`.T](
       Record(s = "b", flagOpt = Some(true)),
       default
     )
